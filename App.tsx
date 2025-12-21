@@ -137,44 +137,6 @@ useEffect(() => {
   });
 }, [sectors, currentDate]); // ⚠️ إزالة stats و setStats من dependencies
 
-  // Check if should show daily review (end of day)
-  useEffect(() => {
-    const now = new Date();
-    const hour = now.getHours();
-    
-    // البحث عن إحصائيات اليوم
-    let todayStat = stats.find(s => s.date === currentDate);
-    
-    // إذا لم يكن هناك إحصائيات لهذا اليوم، أنشئها أولاً
-    if (!todayStat) {
-      const newStats = calculateDailyStats(sectors);
-      const existingStatIndex = stats.findIndex(s => s.date === currentDate);
-      
-      const updatedStats = [...stats];
-      if (existingStatIndex >= 0) {
-        updatedStats[existingStatIndex] = {
-          ...updatedStats[existingStatIndex],
-          ...newStats
-        };
-      } else {
-        updatedStats.push({ ...newStats, date: currentDate });
-      }
-      
-      setStats(updatedStats);
-      todayStat = newStats;
-    }
-    
-    // عرض الـ Review في المساء إذا لم يكن قد تم تقييم اليوم
-    // بعد الساعة 8 مساءً وإذا لم يكن هناك dailyRating
-    if (hour >= 20 && !todayStat.dailyRating && !showDailyReview) {
-      // تأخير بسيط لعرض الـ Review
-      const timer = setTimeout(() => {
-        setShowDailyReview(true);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [currentDate, stats, sectors, setStats, showDailyReview]);
 
   // Handle updating a sector
   const handleUpdateSector = (sectorId: string, updates: Partial<FocusSector>) => {

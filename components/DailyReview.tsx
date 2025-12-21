@@ -21,10 +21,9 @@ const DailyReview: React.FC<DailyReviewProps> = ({ stats, onSave, onClose }) => 
     }
   }, [stats.dailyRating, stats.notes]);
 
-  const handleSaveAndClose = () => {
+  const handleSave = () => {
     if (rating > 0) {
       onSave(rating, notes);
-      onClose(); // احفظ ثم أغلق
     } else {
       alert('Please rate your day before saving!');
     }
@@ -42,31 +41,32 @@ const DailyReview: React.FC<DailyReviewProps> = ({ stats, onSave, onClose }) => 
   const completedTasks = stats.completedTasks || 0;
   const efficiencyRate = stats.efficiencyRate || 0;
   const date = stats.date || new Date().toISOString().split('T')[0];
+  const hasExistingReview = !!stats.dailyRating;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-2xl font-bold">Daily Review</h2>
-          <div className="text-sm text-slate-500">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl max-w-full w-full max-w-md mx-auto p-4 sm:p-5 border border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg sm:text-xl font-bold">Daily Review</h2>
+          <div className="text-xs sm:text-sm text-slate-500">
             {date}
           </div>
         </div>
         
-        <p className="text-slate-600 dark:text-slate-400 mb-6">
-          {stats.dailyRating ? 'Update your daily reflection:' : 'How was your productivity today?'}
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+          {hasExistingReview ? 'Update your daily reflection:' : 'How was your productivity today?'}
         </p>
 
         {/* Productivity Summary */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-2xl p-4 mb-6">
-          <div className="text-center mb-4">
-            <div className="text-4xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-lg p-3 sm:p-4 mb-4">
+          <div className="text-center mb-3">
+            <div className="text-2xl sm:text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-1">
               {productivityScore}/100
             </div>
             <p className="text-sm font-medium">{getProductivityMessage(productivityScore)}</p>
           </div>
           
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="text-center">
               <div className="font-bold text-lg">{completedTasks}</div>
               <div className="text-slate-600 dark:text-slate-400">Tasks Done</div>
@@ -79,18 +79,19 @@ const DailyReview: React.FC<DailyReviewProps> = ({ stats, onSave, onClose }) => 
         </div>
 
         {/* Rating */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-3">
-            {stats.dailyRating ? 'Update Your Rating' : 'Rate Your Day'}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">
+            {hasExistingReview ? 'Update Your Rating' : 'Rate Your Day'}
           </label>
-          <div className="flex justify-center gap-1">
+          <div className="flex justify-center gap-0.5 sm:gap-1">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(star => (
               <button
                 key={star}
                 onClick={() => setRating(star)}
-                className={`text-2xl transition-transform hover:scale-110 ${
+                className={`text-xl sm:text-2xl transition-transform active:scale-95 ${
                   star <= rating ? 'text-yellow-500' : 'text-slate-300'
                 }`}
+                aria-label={`Rate ${star} stars`}
               >
                 {star <= rating ? '★' : '☆'}
               </button>
@@ -120,31 +121,37 @@ const DailyReview: React.FC<DailyReviewProps> = ({ stats, onSave, onClose }) => 
         </div>
 
         {/* Notes */}
-        <div className="mb-6">
+        <div className="mb-5">
           <label className="block text-sm font-medium mb-2">
             Reflection Notes
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-transparent"
+            className="w-full p-2.5 sm:p-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-transparent text-sm sm:text-base"
             rows={3}
             placeholder="What went well? What could be better tomorrow?"
           />
         </div>
 
-        {/* Actions - زر واحد فقط الآن */}
-        <div className="flex gap-3">
+        {/* Actions - زرين الآن */}
+        <div className="flex gap-2 sm:gap-3">
           <button
-            onClick={handleSaveAndClose}
+            onClick={onClose}
+            className="flex-1 py-2.5 sm:py-3 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium text-sm sm:text-base active:scale-95"
+          >
+            Close
+          </button>
+          <button
+            onClick={handleSave}
             disabled={rating === 0}
-            className={`flex-1 py-3 rounded-xl transition-colors font-medium ${
+            className={`flex-1 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base active:scale-95 ${
               rating === 0 
                 ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                 : 'bg-indigo-600 text-white hover:bg-indigo-700'
             }`}
           >
-            {stats.dailyRating ? 'Update & Close' : 'Save & Close'}
+            {hasExistingReview ? 'Update' : 'Save'}
           </button>
         </div>
       </div>

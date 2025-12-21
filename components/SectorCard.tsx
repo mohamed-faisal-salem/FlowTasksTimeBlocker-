@@ -23,7 +23,6 @@ const SectorCard: React.FC<SectorCardProps> = ({
   const [isEditingSector, setIsEditingSector] = useState(false);
   const [sectorName, setSectorName] = useState(sector.label);
   const [sectorDescription, setSectorDescription] = useState(sector.description);
-  const [sectorTime, setSectorTime] = useState(sector.idealTime);
 
   const handleAddTask = (sectorId: string, taskData: Partial<Task>) => {
     const fullTask: Task = {
@@ -40,14 +39,13 @@ const SectorCard: React.FC<SectorCardProps> = ({
     onAddTask(sectorId, fullTask);
   };
 
-const handleSaveSector = () => {
-  onUpdateSector(sector.id, {
-    label: sectorName,
-    description: sectorDescription
-    // ⚠️ لا نرسل idealTime لأننا لا نريد تعديله
-  });
-  setIsEditingSector(false);
-};
+  const handleSaveSector = () => {
+    onUpdateSector(sector.id, {
+      label: sectorName,
+      description: sectorDescription
+    });
+    setIsEditingSector(false);
+  };
 
   const getPriorityCount = (priority: Priority) => {
     return sector.tasks.filter(t => t.priority === priority).length;
@@ -85,12 +83,13 @@ const handleSaveSector = () => {
 
   return (
     <>
-      <div className={`rounded-3xl border p-6 transition-all hover:scale-[1.01] ${colorClasses[sector.color] || colorClasses.blue}`}>
+      <div className={`rounded-lg sm:rounded-xl border p-3 sm:p-4 transition-all ${colorClasses[sector.color] || colorClasses.blue}`}>
         
         {/* Sector Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className={`text-3xl p-3 rounded-2xl ${sector.color === 'amber' ? 'bg-amber-100 dark:bg-amber-900/30' : 
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className={`text-xl sm:text-2xl p-2 sm:p-2.5 rounded-lg ${
+              sector.color === 'amber' ? 'bg-amber-100 dark:bg-amber-900/30' : 
               sector.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30' :
               sector.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/30' :
               sector.color === 'cyan' ? 'bg-cyan-100 dark:bg-cyan-900/30' :
@@ -99,30 +98,36 @@ const handleSaveSector = () => {
               sector.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/30' :
               sector.color === 'pink' ? 'bg-pink-100 dark:bg-pink-900/30' :
               sector.color === 'green' ? 'bg-green-100 dark:bg-green-900/30' :
-              'bg-slate-100 dark:bg-slate-900/30'}`}>
+              'bg-slate-100 dark:bg-slate-900/30'
+            } shrink-0`}>
               {sector.icon}
             </div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">{sector.label}</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">{sector.description}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs bg-white dark:bg-slate-800 px-2 py-1 rounded-full">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
+                {sector.label}
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1">
+                {sector.description}
+              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-xs bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                   ⏰ {sector.idealTime}
                 </span>
-                <span className="text-xs bg-white dark:bg-slate-800 px-2 py-1 rounded-full">
+                <span className="text-xs bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                   📊 {completionRate}% Complete
                 </span>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 justify-end mt-2 sm:mt-0">
             <Tooltip text="Add Task">
               <button
                 onClick={() => setShowTaskForm(true)}
-                className={`p-3 rounded-2xl text-white hover:opacity-90 transition-colors ${
+                className={`w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg text-white hover:opacity-90 transition-colors ${
                   accentColors[sector.color] || accentColors.blue
                 }`}
+                aria-label="Add Task"
               >
                 <ICONS.Plus />
               </button>
@@ -131,7 +136,8 @@ const handleSaveSector = () => {
             <Tooltip text="Edit Focus Area">
               <button 
                 onClick={() => setIsEditingSector(true)}
-                className="p-3 rounded-2xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+                aria-label="Edit Focus Area"
               >
                 <ICONS.Edit />
               </button>
@@ -140,11 +146,11 @@ const handleSaveSector = () => {
         </div>
 
         {/* Priority Overview */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-1.5 sm:gap-2 mb-3 sm:mb-4">
           {(['urgent', 'important', 'normal'] as Priority[]).map(priority => (
-            <div key={priority} className={`flex-1 p-2 rounded-xl ${PRIORITY_COLORS[priority]} bg-opacity-10`}>
+            <div key={priority} className={`flex-1 p-1.5 sm:p-2 rounded-lg ${PRIORITY_COLORS[priority]} bg-opacity-10`}>
               <div className="text-center">
-                <div className="font-bold text-2xl">{getPriorityCount(priority)}</div>
+                <div className="font-bold text-base sm:text-lg">{getPriorityCount(priority)}</div>
                 <div className="text-xs">{PRIORITY_LABELS[priority]}</div>
               </div>
             </div>
@@ -152,46 +158,48 @@ const handleSaveSector = () => {
         </div>
 
         {/* Tasks List */}
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-2.5">
           {sector.tasks.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 italic">
+            <div className="text-center py-4 text-slate-500 italic text-sm">
               No tasks yet. Add your first task to this focus area.
             </div>
           ) : (
             sector.tasks.map(task => (
-              <div key={task.id} className="bg-white dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
+              <div key={task.id} className="bg-white dark:bg-slate-800/50 rounded-lg p-2.5 sm:p-3 border border-slate-200 dark:border-slate-700">
+                <div className="flex items-start sm:items-center justify-between gap-2">
+                  <div className="flex items-start gap-2 min-w-0 flex-1">
                     <button
                       onClick={() => onUpdateTask(sector.id, task.id, { completed: !task.completed })}
-                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center ${
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 ${
                         task.completed 
                           ? 'bg-green-500 border-green-500' 
                           : 'border-slate-300 dark:border-slate-600'
                       }`}
+                      aria-label={task.completed ? "Mark as incomplete" : "Mark as complete"}
                     >
                       {task.completed && <ICONS.Check />}
                     </button>
-                    <div>
-                      <span className={`font-medium text-lg ${task.completed ? 'line-through text-slate-500' : 'text-slate-800 dark:text-slate-200'}`}>
+                    <div className="min-w-0 flex-1">
+                      <span className={`font-medium text-sm sm:text-base ${task.completed ? 'line-through text-slate-500' : 'text-slate-800 dark:text-slate-200'}`}>
                         {task.text}
                       </span>
                       {task.notes && (
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
                           {task.notes}
                         </p>
                       )}
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs px-3 py-1.5 rounded-full font-semibold ${PRIORITY_COLORS[task.priority]}`}>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className={`text-xs px-2 py-1 rounded-full font-semibold whitespace-nowrap ${PRIORITY_COLORS[task.priority]}`}>
                       {task.priority.toUpperCase()}
                     </span>
                     <Tooltip text="Delete Task">
                       <button
                         onClick={() => onDeleteTask(sector.id, task.id)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                        className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
+                        aria-label="Delete Task"
                       >
                         <ICONS.Trash />
                       </button>
@@ -204,8 +212,8 @@ const handleSaveSector = () => {
         </div>
 
         {/* Sector Footer */}
-        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
-          <div className="flex justify-between text-sm">
+        <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex justify-between text-xs sm:text-sm">
             <div>
               <span className="font-semibold">{sector.tasks.length}</span> tasks
             </div>
@@ -229,55 +237,52 @@ const handleSaveSector = () => {
       )}
 
       {/* Edit Sector Modal */}
-   {/* Edit Sector Modal - بدون حقل الوقت */}
-{isEditingSector && (
-  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800">
-      <h3 className="text-xl font-bold mb-4">Edit Focus Area</h3>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Name</label>
-          <input
-            type="text"
-            value={sectorName}
-            onChange={(e) => setSectorName(e.target.value)}
-            className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-transparent"
-            placeholder="e.g., Creative Flow"
-          />
+      {isEditingSector && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl max-w-full w-full max-w-md mx-auto p-4 sm:p-5 border border-slate-200 dark:border-slate-800">
+            <h3 className="text-base sm:text-lg font-bold mb-3">Edit Focus Area</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Name</label>
+                <input
+                  type="text"
+                  value={sectorName}
+                  onChange={(e) => setSectorName(e.target.value)}
+                  className="w-full p-2.5 sm:p-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-transparent text-sm sm:text-base"
+                  placeholder="e.g., Creative Flow"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <textarea
+                  value={sectorDescription}
+                  onChange={(e) => setSectorDescription(e.target.value)}
+                  className="w-full p-2.5 sm:p-3 border border-slate-300 dark:border-slate-700 rounded-lg bg-transparent text-sm sm:text-base"
+                  rows={2}
+                  placeholder="e.g., Brainstorming, design, innovation"
+                />
+              </div>
+              
+              <div className="flex gap-2 sm:gap-3 pt-2">
+                <button
+                  onClick={() => setIsEditingSector(false)}
+                  className="flex-1 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm sm:text-base"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveSector}
+                  className="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm sm:text-base"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        
-        <div>
-          <label className="block text-sm font-medium mb-1">Description</label>
-          <textarea
-            value={sectorDescription}
-            onChange={(e) => setSectorDescription(e.target.value)}
-            className="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-transparent"
-            rows={2}
-            placeholder="e.g., Brainstorming, design, innovation"
-          />
-        </div>
-        
-        {/* ⚠️ إزالة حقل الوقت تماماً */}
-        
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={() => setIsEditingSector(false)}
-            className="flex-1 py-3 border border-slate-300 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSaveSector}
-            className="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
-          >
-            Save Changes
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </>
   );
 };

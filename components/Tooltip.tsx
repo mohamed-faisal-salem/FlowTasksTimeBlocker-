@@ -6,12 +6,12 @@ interface TooltipProps {
   position?: 'top' | 'bottom' | 'left' | 'right';
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ text, children, position = 'bottom' }) => { // ✅ تغيير الافتراضي إلى 'bottom'
+const Tooltip: React.FC<TooltipProps> = ({ text, children, position = 'bottom' }) => {
   const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+    top: 'bottom-full left-1/2 -translate-x-1/2 mb-1.5',
+    bottom: 'top-full left-1/2 -translate-x-1/2 mt-1.5',
+    left: 'right-full top-1/2 -translate-y-1/2 mr-1.5',
+    right: 'left-full top-1/2 -translate-y-1/2 ml-1.5',
   };
 
   const arrowClasses = {
@@ -24,11 +24,8 @@ const Tooltip: React.FC<TooltipProps> = ({ text, children, position = 'bottom' }
   return (
     <div className="group relative flex items-center justify-center">
       {children}
-      <div className={`absolute ${positionClasses[position]} hidden group-hover:block z-50`}>
-        <div className="bg-gray-800 text-white text-xs py-1 px-2 rounded whitespace-nowrap shadow-xl relative">
-          {text}
-          <div className={arrowClasses[position]}></div>
-        </div>
+      <div className={`absolute ${positionClasses[position]} hidden group-hover:block z-50 pointer-events-none`}>
+        
       </div>
     </div>
   );
