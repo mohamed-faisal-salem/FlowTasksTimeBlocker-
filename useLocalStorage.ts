@@ -9,6 +9,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       console.error(error);
       return initialValue;
     }
+
   });
 
   const setValue = (value: T | ((prev: T) => T)) => {
@@ -22,6 +23,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       console.error(error);
     }
   };
+
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {

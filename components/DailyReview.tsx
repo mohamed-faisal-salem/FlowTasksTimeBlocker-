@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DailyStats } from '../types';
 
 interface DailyReviewProps {
@@ -8,12 +8,26 @@ interface DailyReviewProps {
 }
 
 const DailyReview: React.FC<DailyReviewProps> = ({ stats, onSave, onClose }) => {
-  const [rating, setRating] = useState(3);
-  const [notes, setNotes] = useState('');
+  const [rating, setRating] = useState(stats.dailyRating || 0);
+  const [notes, setNotes] = useState(stats.notes || '');
 
-  const handleSubmit = () => {
-    onSave(rating, notes);
-    onClose();
+  // إذا كان هناك ريفيو سابق، حمله
+  useEffect(() => {
+    if (stats.dailyRating) {
+      setRating(stats.dailyRating);
+    }
+    if (stats.notes) {
+      setNotes(stats.notes);
+    }
+  }, [stats.dailyRating, stats.notes]);
+
+  const handleSaveAndClose = () => {
+    if (rating > 0) {
+      onSave(rating, notes);
+      onClose(); // احفظ ثم أغلق
+    } else {
+      alert('Please rate your day before saving!');
+    }
   };
 
   const getProductivityMessage = (score: number) => {
@@ -23,30 +37,42 @@ const DailyReview: React.FC<DailyReviewProps> = ({ stats, onSave, onClose }) => 
     return "Tomorrow is another chance! 💪";
   };
 
+  // Default values to prevent undefined errors
+  const productivityScore = stats.productivityScore || 0;
+  const completedTasks = stats.completedTasks || 0;
+  const efficiencyRate = stats.efficiencyRate || 0;
+  const date = stats.date || new Date().toISOString().split('T')[0];
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800">
-        <h2 className="text-2xl font-bold mb-2">Daily Review</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-2xl font-bold">Daily Review</h2>
+          <div className="text-sm text-slate-500">
+            {date}
+          </div>
+        </div>
+        
         <p className="text-slate-600 dark:text-slate-400 mb-6">
-          How was your productivity today?
+          {stats.dailyRating ? 'Update your daily reflection:' : 'How was your productivity today?'}
         </p>
 
         {/* Productivity Summary */}
         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-2xl p-4 mb-6">
           <div className="text-center mb-4">
             <div className="text-4xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
-              {stats.productivityScore}/100
+              {productivityScore}/100
             </div>
-            <p className="text-sm font-medium">{getProductivityMessage(stats.productivityScore)}</p>
+            <p className="text-sm font-medium">{getProductivityMessage(productivityScore)}</p>
           </div>
           
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="text-center">
-              <div className="font-bold text-lg">{stats.completedTasks}</div>
+              <div className="font-bold text-lg">{completedTasks}</div>
               <div className="text-slate-600 dark:text-slate-400">Tasks Done</div>
             </div>
             <div className="text-center">
-              <div className="font-bold text-lg">{stats.efficiencyRate}%</div>
+              <div className="font-bold text-lg">{efficiencyRate}%</div>
               <div className="text-slate-600 dark:text-slate-400">Efficiency</div>
             </div>
           </div>
@@ -54,30 +80,50 @@ const DailyReview: React.FC<DailyReviewProps> = ({ stats, onSave, onClose }) => 
 
         {/* Rating */}
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-3">Rate Your Day</label>
+          <label className="block text-sm font-medium mb-3">
+            {stats.dailyRating ? 'Update Your Rating' : 'Rate Your Day'}
+          </label>
           <div className="flex justify-center gap-1">
-            {[1, 2, 3, 4, 5].map(star => (
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(star => (
               <button
                 key={star}
                 onClick={() => setRating(star)}
-                className="text-3xl transition-transform hover:scale-110"
+                className={`text-2xl transition-transform hover:scale-110 ${
+                  star <= rating ? 'text-yellow-500' : 'text-slate-300'
+                }`}
               >
-                {star <= rating ? '⭐' : '☆'}
+                {star <= rating ? '★' : '☆'}
               </button>
             ))}
           </div>
-          <div className="text-center mt-2 text-sm text-slate-600 dark:text-slate-400">
-            {rating === 5 ? 'Excellent!' : 
-             rating === 4 ? 'Very Good' : 
-             rating === 3 ? 'Good' : 
-             rating === 2 ? 'Fair' : 
-             'Needs Improvement'}
+          <div className="text-center mt-2 text-sm">
+            <span className={`font-medium ${
+              rating === 10 ? 'text-green-600' :
+              rating >= 8 ? 'text-blue-600' :
+              rating >= 6 ? 'text-yellow-600' :
+              rating >= 4 ? 'text-orange-600' :
+              rating >= 1 ? 'text-red-600' : 'text-slate-500'
+            }`}>
+              {rating === 10 ? 'Perfect! (10/10)' :
+               rating === 9 ? 'Excellent! (9/10)' :
+               rating === 8 ? 'Very Good (8/10)' :
+               rating === 7 ? 'Good (7/10)' :
+               rating === 6 ? 'Above Average (6/10)' :
+               rating === 5 ? 'Average (5/10)' :
+               rating === 4 ? 'Below Average (4/10)' :
+               rating === 3 ? 'Needs Improvement (3/10)' :
+               rating === 2 ? 'Poor (2/10)' :
+               rating === 1 ? 'Very Poor (1/10)' :
+               'Not rated yet'}
+            </span>
           </div>
         </div>
 
         {/* Notes */}
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Reflection Notes</label>
+          <label className="block text-sm font-medium mb-2">
+            Reflection Notes
+          </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -87,19 +133,18 @@ const DailyReview: React.FC<DailyReviewProps> = ({ stats, onSave, onClose }) => 
           />
         </div>
 
-        {/* Actions */}
+        {/* Actions - زر واحد فقط الآن */}
         <div className="flex gap-3">
           <button
-            onClick={onClose}
-            className="flex-1 py-3 border border-slate-300 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            onClick={handleSaveAndClose}
+            disabled={rating === 0}
+            className={`flex-1 py-3 rounded-xl transition-colors font-medium ${
+              rating === 0 
+                ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+            }`}
           >
-            Skip
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
-          >
-            Save Review
+            {stats.dailyRating ? 'Update & Close' : 'Save & Close'}
           </button>
         </div>
       </div>

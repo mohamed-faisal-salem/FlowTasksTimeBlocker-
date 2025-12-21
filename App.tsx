@@ -42,6 +42,66 @@ const App: React.FC = () => {
     return sectors[0]; // Default to first if not found
   };
 
+// إضافة في بداية App component
+useEffect(() => {
+  console.log('🔄 Stats from localStorage:', 
+    JSON.parse(localStorage.getItem('daily-stats') || '[]')
+  );
+  console.log('🔄 Sectors from localStorage:', 
+    JSON.parse(localStorage.getItem('daily-task-sectors') || '[]')
+  );
+}, []);
+
+  // Auto-reset at midnight (12 AM)
+// في App.tsx - في useEffect للـ Reset اليومي
+useEffect(() => {
+  const checkForReset = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    
+    // إذا كانت الساعة 12:00 - 12:05 صباحاً
+    if (hours === 0 && minutes >= 0 && minutes <= 5) {
+      const lastReset = localStorage.getItem('lastMidnightReset');
+      const today = new Date().toISOString().split('T')[0];
+      
+      // إذا لم يتم الـ Reset اليوم
+      if (lastReset !== today) {
+        // 1. مسح المهام فقط (وليس القطاعات المعدلة)
+        setSectors(prevSectors => 
+          prevSectors.map(sector => ({
+            ...sector,
+            tasks: [] // مسح المهام فقط
+          }))
+        );
+        
+        // 2. مسح dailyRating من إحصائيات اليوم
+        setStats(prevStats => {
+          const todayStat = prevStats.find(s => s.date === today);
+          if (todayStat) {
+            return prevStats.map(stat => 
+              stat.date === today 
+                ? { ...stat, dailyRating: undefined, notes: undefined }
+                : stat
+            );
+          }
+          return prevStats;
+        });
+        
+        // 3. حفظ تاريخ الـ Reset
+        localStorage.setItem('lastMidnightReset', today);
+        console.log('Daily reset completed at midnight - tasks and daily review cleared');
+      }
+    }
+  };
+  
+  // تحقق كل دقيقة
+  const interval = setInterval(checkForReset, 60000);
+  checkForReset(); // تحقق فور التحميل
+  
+  return () => clearInterval(interval);
+}, [setSectors, setStats]); // ✅ إضافة setStats إلى dependencies
+
   // Update theme
   useEffect(() => {
     const html = document.documentElement;
@@ -52,68 +112,69 @@ const App: React.FC = () => {
     }
   }, [theme]);
 
-  // Auto-reset at midnight (12 AM)
-  useEffect(() => {
-    const checkForReset = () => {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      
-      // If it's 12:00 - 12:05 AM
-      if (hours === 0 && minutes >= 0 && minutes <= 5) {
-        const lastReset = localStorage.getItem('lastMidnightReset');
-        const today = new Date().toISOString().split('T')[0];
-        
-        // If not reset today
-        if (lastReset !== today) {
-          // Clear tasks only (keep sector names/descriptions)
-          setSectors(sectors.map(sector => ({
-            ...sector,
-            tasks: [] // Clear tasks only
-          })));
-          
-          localStorage.setItem('lastMidnightReset', today);
-          console.log('Daily reset completed at midnight');
-        }
-      }
-    };
-    
-    // Check every minute
-    const interval = setInterval(checkForReset, 60000);
-    checkForReset(); // Check immediately on load
-    
-    return () => clearInterval(interval);
-  }, [sectors, setSectors]);
-
   // Update stats when tasks change
-  useEffect(() => {
-    const todayStats = calculateDailyStats(sectors);
-    const existingStatIndex = stats.findIndex(s => s.date === currentDate);
+// في App.tsx - إصلاح useEffect الأول
+useEffect(() => {
+  // ✅ احسب الإحصائيات أولاً
+  const todayStats = calculateDailyStats(sectors);
+  
+  // ✅ استخدم setStats مع دالة updater لتجنب dependency على stats
+  setStats(prevStats => {
+    const existingStatIndex = prevStats.findIndex(s => s.date === currentDate);
     
-    const updatedStats = [...stats];
     if (existingStatIndex >= 0) {
+      // تحديث الإحصائيات الموجودة
+      const updatedStats = [...prevStats];
       updatedStats[existingStatIndex] = {
         ...updatedStats[existingStatIndex],
         ...todayStats
       };
+      return updatedStats;
     } else {
-      updatedStats.push(todayStats);
+      // إضافة إحصائيات جديدة
+      return [...prevStats, todayStats];
     }
-    
-    setStats(updatedStats);
-  }, [sectors, currentDate, stats]);
+  });
+}, [sectors, currentDate]); // ⚠️ إزالة stats و setStats من dependencies
 
   // Check if should show daily review (end of day)
   useEffect(() => {
     const now = new Date();
     const hour = now.getHours();
-    const todayStat = stats.find(s => s.date === currentDate);
     
-    // Show review at end of day if not already rated
-    if (hour >= 20 && !todayStat?.dailyRating && !showDailyReview) {
-      setShowDailyReview(true);
+    // البحث عن إحصائيات اليوم
+    let todayStat = stats.find(s => s.date === currentDate);
+    
+    // إذا لم يكن هناك إحصائيات لهذا اليوم، أنشئها أولاً
+    if (!todayStat) {
+      const newStats = calculateDailyStats(sectors);
+      const existingStatIndex = stats.findIndex(s => s.date === currentDate);
+      
+      const updatedStats = [...stats];
+      if (existingStatIndex >= 0) {
+        updatedStats[existingStatIndex] = {
+          ...updatedStats[existingStatIndex],
+          ...newStats
+        };
+      } else {
+        updatedStats.push({ ...newStats, date: currentDate });
+      }
+      
+      setStats(updatedStats);
+      todayStat = newStats;
     }
-  }, [currentDate, stats, showDailyReview]);
+    
+    // عرض الـ Review في المساء إذا لم يكن قد تم تقييم اليوم
+    // بعد الساعة 8 مساءً وإذا لم يكن هناك dailyRating
+    if (hour >= 20 && !todayStat.dailyRating && !showDailyReview) {
+      // تأخير بسيط لعرض الـ Review
+      const timer = setTimeout(() => {
+        setShowDailyReview(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [currentDate, stats, sectors, setStats, showDailyReview]);
 
   // Handle updating a sector
   const handleUpdateSector = (sectorId: string, updates: Partial<FocusSector>) => {
@@ -167,14 +228,36 @@ const App: React.FC = () => {
     ));
   };
 
-  const handleSaveDailyReview = (rating: number, notes: string) => {
-    const updatedStats = stats.map(stat => 
-      stat.date === currentDate 
-        ? { ...stat, dailyRating: rating, notes }
-        : stat
-    );
-    setStats(updatedStats);
-  };
+// في App.tsx - تصحيح دالة handleSaveDailyReview
+const handleSaveDailyReview = (rating: number, notes: string) => {
+  // استخدام setStats مباشرة لتحديث الحالة
+  setStats(prevStats => {
+    const existingStatIndex = prevStats.findIndex(s => s.date === currentDate);
+    
+    if (existingStatIndex >= 0) {
+      // تحديث الإحصائيات الموجودة
+      const updatedStats = [...prevStats];
+      updatedStats[existingStatIndex] = {
+        ...updatedStats[existingStatIndex],
+        dailyRating: rating,
+        notes: notes.trim() || undefined
+      };
+      return updatedStats;
+    } else {
+      // أو أنشئ إحصائيات جديدة لهذا اليوم
+      const todayStats = calculateDailyStats(sectors);
+      return [...prevStats, {
+        ...todayStats,
+        date: currentDate,
+        dailyRating: rating,
+        notes: notes.trim() || undefined
+      }];
+    }
+  });
+  
+  // إغلاق الـ Review
+  setShowDailyReview(false);
+};
 
   const todayStat = stats.find(s => s.date === currentDate);
   const totalTasks = sectors.reduce((sum, s) => sum + s.tasks.length, 0);
@@ -194,14 +277,19 @@ const App: React.FC = () => {
               📊
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Daily Task Manager</h1>
-              {todayStat && (
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-semibold">
-                    {completedTasks}/{totalTasks} tasks
-                  </span>
-                </div>
-              )}
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">FlowTaskTimeBlocker</h1>
+{todayStat && (
+  <div className="flex items-center gap-2 text-xs">
+    <span className="px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-semibold">
+      {completedTasks}/{totalTasks} tasks
+    </span>
+    {todayStat.dailyRating && (
+      <span className="px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 font-semibold">
+        ★ {todayStat.dailyRating}/10
+      </span>
+    )}
+  </div>
+)}
             </div>
           </div>
 
@@ -215,31 +303,48 @@ const App: React.FC = () => {
               </button>
             </Tooltip>
             
-            {/* Clear All Data Button */}
-            <Tooltip text="Clear All Data (Reset Everything)">
-              <button 
-                onClick={() => {
-                  if (window.confirm('⚠️ Are you sure you want to clear ALL data?\n\nThis will delete:\n• All tasks\n• All statistics\n• All daily reviews\n\nThis action cannot be undone!')) {
-                    // Clear localStorage
-                    localStorage.removeItem('daily-task-sectors');
-                    localStorage.removeItem('daily-stats');
-                    localStorage.removeItem('theme');
-                    localStorage.removeItem('lastMidnightReset');
-                    
-                    // Reset state
-                    setSectors(INITIAL_SECTORS);
-                    setStats([]);
-                    setTheme('light');
-                    
-                    // Force reload
-                    window.location.reload();
-                  }
-                }}
-                className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-red-300 dark:border-red-800 hover:shadow-lg transition-all hover:scale-105 hover:bg-red-50 dark:hover:bg-red-900/30"
-              >
-                🗑️
-              </button>
-            </Tooltip>
+{/* في Header بعد زر التيمي */}
+{/* Clear All Data Button - النسخة النهائية */}
+<Tooltip text="Clear All Data (Reset Everything)">
+  <button 
+    onClick={() => {
+      if (window.confirm('Are you sure you want to clear ALL data?\n\nThis will delete:\n• All tasks\n• All statistics\n• All daily reviews\n• All focus area edits\n\nThis action cannot be undone!')) {
+        
+        // ✅ 1. إزالة event listeners أولاً
+        window.removeEventListener('storage', () => {});
+        
+        // ✅ 2. مسح localStorage بالكامل
+        localStorage.clear();
+        
+        // ✅ 3. إعادة تعيين state مباشرة
+        setSectors(INITIAL_SECTORS);
+        setStats([]);
+        
+        // ✅ 4. إعادة تعيين المتغيرات المحلية
+        const newStats = calculateDailyStats(INITIAL_SECTORS);
+        const today = new Date().toISOString().split('T')[0];
+        
+        // ✅ 5. حفظ القيم الافتراضية مباشرة في localStorage
+        localStorage.setItem('daily-task-sectors', JSON.stringify(INITIAL_SECTORS));
+        localStorage.setItem('daily-stats', JSON.stringify([{
+          ...newStats,
+          date: today,
+          dailyRating: undefined,
+          notes: undefined
+        }]));
+        localStorage.setItem('theme', JSON.stringify('light'));
+        
+        // ✅ 6. إعادة تحميل الصفحة للتأكد
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      }
+    }}
+    className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-red-300 dark:border-red-800 hover:shadow-lg transition-all hover:scale-105 hover:bg-red-50 dark:hover:bg-red-900/30"
+  >
+    🗑️
+  </button>
+</Tooltip>
             
             <Tooltip text={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
               <button 
@@ -374,17 +479,57 @@ const App: React.FC = () => {
           ))}
         </div>
 
-        {/* Quick Add Button */}
-        <div className="fixed bottom-8 right-8 z-40">
-          <Tooltip text="Daily Review">
-            <button
-              onClick={() => setShowDailyReview(true)}
-              className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform"
-            >
-              ✏️
-            </button>
-          </Tooltip>
-        </div>
+{/* Quick Add Button */}
+<div className="fixed bottom-8 right-8 z-40">
+  <Tooltip text={todayStat?.dailyRating ? "View Daily Review" : "Daily Review"}>
+    <button
+      onClick={() => {
+        // التأكد من وجود إحصائيات اليوم أولاً
+        const existingStatIndex = stats.findIndex(s => s.date === currentDate);
+        
+        if (existingStatIndex >= 0) {
+          // تحديث الحالة المحلية قبل فتح الـ Review
+          setStats(prevStats => {
+            const updatedStats = [...prevStats];
+            if (updatedStats[existingStatIndex]) {
+              updatedStats[existingStatIndex] = {
+                ...updatedStats[existingStatIndex],
+                // تحديث أي بيانات قد تكون مفقودة
+                productivityScore: calculateDailyStats(sectors).productivityScore,
+                completedTasks: sectors.reduce((sum, s) => 
+                  sum + s.tasks.filter(t => t.completed).length, 0
+                ),
+                totalTasks: sectors.reduce((sum, s) => sum + s.tasks.length, 0)
+              };
+            }
+            return updatedStats;
+          });
+        } else {
+          // إذا لم توجد إحصائيات، أنشئها
+          const newStats = calculateDailyStats(sectors);
+          setStats(prev => [...prev, { ...newStats, date: currentDate }]);
+        }
+        
+        // ثم افتح الـ Review بعد تحديث الحالة
+        setTimeout(() => {
+          setShowDailyReview(true);
+        }, 50);
+      }}
+      className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform relative"
+    >
+      {todayStat?.dailyRating ? (
+        <>
+          📊
+          <span className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full text-xs flex items-center justify-center">
+            ✓
+          </span>
+        </>
+      ) : (
+        '📝'
+      )}
+    </button>
+  </Tooltip>
+</div>
       </main>
 
       {/* Stats Panel */}
@@ -397,9 +542,9 @@ const App: React.FC = () => {
         />
       )}
 
-      {showDailyReview && todayStat && (
+      {showDailyReview && (
         <DailyReview
-          stats={todayStat}
+          stats={todayStat || { ...calculateDailyStats(sectors), date: currentDate }}
           onSave={handleSaveDailyReview}
           onClose={() => setShowDailyReview(false)}
         />
