@@ -1,0 +1,229 @@
+import React, { useState } from 'react';
+import { DailyStats, FocusSector } from './types';
+import { calculateDailyStats, calculateStreak } from './statsCalculations';
+import { ICONS } from './constants';
+import { getHourString } from './utils';
+
+interface StatsPanelProps {
+  stats: DailyStats[];
+  sectors: FocusSector[];
+  currentHour: number;
+  onClose: () => void;
+}
+
+const StatsPanel: React.FC<StatsPanelProps> = ({ 
+  stats, 
+  sectors, 
+  onClose 
+}) => {
+  // حساب الإحصائيات الحالية
+  const currentStats = calculateDailyStats(sectors);
+  const currentStreak = calculateStreak(stats);
+  
+  const getBlockColor = (rate: number) => {
+    if (rate >= 80) return 'text-emerald-500 bg-emerald-500/10';
+    if (rate >= 50) return 'text-amber-500 bg-amber-500/10';
+    return 'text-rose-500 bg-rose-500/10';
+  };
+
+  const getVibeMessage = (score: number) => {
+    if (score >= 80) return "Perfect harmony across all focus areas! 🎵";
+    if (score >= 60) return "Good balance in your focus areas ⚡";
+    if (score >= 40) return "Room to improve focus distribution ⏰";
+    return "Consider adjusting your focus areas 🔄";
+  };
+
+  // حساب إجمالي النقاط
+  const calculateTotalPoints = () => {
+    let totalPoints = 0;
+    
+    sectors.forEach(sector => {
+      sector.tasks.forEach(task => {
+        if (task.completed) {
+          switch (task.priority) {
+            case 'urgent':
+              totalPoints += 3;
+              break;
+            case 'important':
+              totalPoints += 2;
+              break;
+            case 'normal':
+              totalPoints += 1;
+              break;
+          }
+        }
+      });
+    });
+    
+    return totalPoints;
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl">
+        
+        {/* Header */}
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+              <ICONS.Target />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                Productivity Analytics
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Based on your completed tasks
+              </p>
+            </div>
+          </div>
+          
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          <div className="space-y-6">
+            {/* Vibe Score */}
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-900/50">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Daily Vibe Score
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {getVibeMessage(currentStats.vibeScore)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                    {currentStats.vibeScore}/100
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    Balance across focus areas
+                  </div>
+                </div>
+              </div>
+              <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000"
+                  style={{ width: `${currentStats.vibeScore}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Productivity Score with Points */}
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 rounded-2xl p-6 border border-emerald-100 dark:border-emerald-900/50">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>📈</span> Today's Productivity
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Points system: Urgent=3, Important=2, Normal=1
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {currentStats.productivityScore}%
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {calculateTotalPoints()}/1000 points
+                  </div>
+                </div>
+              </div>
+              <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden mt-2">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full transition-all duration-1000"
+                  style={{ width: `${currentStats.productivityScore}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Energy Flow by Focus Areas */}
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <span>🌊</span> Energy Flow by Focus Areas
+              </h3>
+              <div className="space-y-3">
+                {sectors.map(sector => {
+                  const rate = currentStats.energyFlow[sector.id] || 0;
+                  const completed = sector.tasks.filter(t => t.completed).length;
+                  const total = sector.tasks.length;
+                  
+                  return (
+                    <div key={sector.id} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50/50 dark:bg-slate-900/50">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">{sector.icon}</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {sector.label}
+                          </span>
+                          <span className="text-xs text-slate-500 mono">
+                            ⏰ {sector.idealTime}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {sector.description}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-lg font-bold ${getBlockColor(rate)} px-3 py-1 rounded-lg`}>
+                          {rate}%
+                        </div>
+                        <div className="text-xs text-slate-500 mt-1">
+                          {completed}/{total} tasks
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            
+
+            {/* Priority Distribution */}
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/50">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Task Priority Distribution</h3>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    {currentStats.priorityDistribution.urgent}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Urgent (3 pts)</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                    {currentStats.priorityDistribution.important}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Important (2 pts)</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {currentStats.priorityDistribution.normal}
+                  </div>
+                  <div className="text-sm text-slate-600 dark:text-slate-400">Normal (1 pt)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+          <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
+            The Time Blocker • Points: Urgent(3), Important(2), Normal(1) • 1000 pts = 100%
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default StatsPanel;

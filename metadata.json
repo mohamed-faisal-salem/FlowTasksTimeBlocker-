@@ -1,0 +1,5 @@
+{
+  "name": "The Time Blocker",
+  "description": "A smart daily planner that dynamically maps your day to 'Vibe Goals' based on the hour, helping you organize tasks according to your natural energy levels.",
+  "requestFramePermissions": []
+}
