@@ -196,19 +196,19 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
                   <div className="text-lg sm:text-xl font-bold text-red-600 dark:text-red-400">
                     {currentStats.priorityDistribution.urgent}
                   </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Urgent (3 pts)</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Urgent</div>
                 </div>
                 <div className="p-1.5 sm:p-2">
                   <div className="text-lg sm:text-xl font-bold text-orange-600 dark:text-orange-400">
                     {currentStats.priorityDistribution.important}
                   </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Important (2 pts)</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Important</div>
                 </div>
                 <div className="p-1.5 sm:p-2">
                   <div className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400">
                     {currentStats.priorityDistribution.normal}
                   </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Normal (1 pt)</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Normal</div>
                 </div>
               </div>
             </div>
@@ -218,7 +218,7 @@ const StatsPanel: React.FC<StatsPanelProps> = ({
         {/* Footer */}
         <div className="p-2.5 sm:p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <p className="text-xs text-slate-600 dark:text-slate-400 text-center">
-            The Time Blocker • Points: Urgent(3), Important(2), Normal(1) • 1000 pts = 100%
+            The Time Blocker
           </p>
         </div>
       </div>
