@@ -232,93 +232,97 @@ const handleSaveDailyReview = (rating: number, notes: string) => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-lg">
-              📊
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">FlowTaskTimeBlocker</h1>
-{todayStat && (
-  <div className="flex items-center gap-2 text-xs">
-    <span className="px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-semibold">
-      {completedTasks}/{totalTasks} tasks
-    </span>
-    {todayStat.dailyRating && (
-      <span className="px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 font-semibold">
-        ★ {todayStat.dailyRating}/10
-      </span>
-    )}
-  </div>
-)}
-            </div>
+<header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+  <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-20 flex items-center justify-between">
+    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-md sm:shadow-lg shrink-0">
+        📊
+      </div>
+      <div className="min-w-0 flex-1">
+        <h1 className="text-sm sm:text-xl font-bold text-slate-900 dark:text-white truncate">
+          FlowTaskTimeBlocker
+        </h1>
+        {todayStat && (
+          <div className="flex items-center gap-1 sm:gap-2 mt-0.5">
+            <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-semibold text-xs whitespace-nowrap">
+              {completedTasks}/{totalTasks} tasks
+            </span>
+            {todayStat.dailyRating && (
+              <span className="px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 font-semibold text-xs whitespace-nowrap">
+                ★ {todayStat.dailyRating}/10
+              </span>
+            )}
           </div>
+        )}
+      </div>
+    </div>
 
-          <div className="flex items-center gap-3">
-            <Tooltip text="Analytics Dashboard">
-              <button 
-                onClick={() => setShowStats(true)}
-                className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-lg transition-all hover:scale-105"
-              >
-                📈
-              </button>
-            </Tooltip>
-            
-{/* في Header بعد زر التيمي */}
-{/* Clear All Data Button - النسخة النهائية */}
-<Tooltip text="Clear All Data (Reset Everything)">
-  <button 
-    onClick={() => {
-      if (window.confirm('Are you sure you want to clear ALL data?\n\nThis will delete:\n• All tasks\n• All statistics\n• All daily reviews\n• All focus area edits\n\nThis action cannot be undone!')) {
-        
-        // ✅ 1. إزالة event listeners أولاً
-        window.removeEventListener('storage', () => {});
-        
-        // ✅ 2. مسح localStorage بالكامل
-        localStorage.clear();
-        
-        // ✅ 3. إعادة تعيين state مباشرة
-        setSectors(INITIAL_SECTORS);
-        setStats([]);
-        
-        // ✅ 4. إعادة تعيين المتغيرات المحلية
-        const newStats = calculateDailyStats(INITIAL_SECTORS);
-        const today = new Date().toISOString().split('T')[0];
-        
-        // ✅ 5. حفظ القيم الافتراضية مباشرة في localStorage
-        localStorage.setItem('daily-task-sectors', JSON.stringify(INITIAL_SECTORS));
-        localStorage.setItem('daily-stats', JSON.stringify([{
-          ...newStats,
-          date: today,
-          dailyRating: undefined,
-          notes: undefined
-        }]));
-        localStorage.setItem('theme', JSON.stringify('light'));
-        
-        // ✅ 6. إعادة تحميل الصفحة للتأكد
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
-      }
-    }}
-    className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-red-300 dark:border-red-800 hover:shadow-lg transition-all hover:scale-105 hover:bg-red-50 dark:hover:bg-red-900/30"
-  >
-    🗑️
-  </button>
-</Tooltip>
-            
-            <Tooltip text={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-              <button 
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-lg transition-all hover:scale-105"
-              >
-                {theme === 'dark' ? '🌞' : '🌙'}
-              </button>
-            </Tooltip>
-          </div>
-        </div>
-      </header>
+    <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+      <Tooltip text="Analytics Dashboard">
+        <button 
+          onClick={() => setShowStats(true)}
+          className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-lg sm:rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-md sm:hover:shadow-lg transition-all hover:scale-105 active:scale-95 text-sm sm:text-base"
+          aria-label="Analytics Dashboard"
+        >
+          📈
+        </button>
+      </Tooltip>
+      
+      {/* Clear All Data Button */}
+      <Tooltip text="Clear All Data (Reset Everything)">
+        <button 
+          onClick={() => {
+            if (window.confirm('Are you sure you want to clear ALL data?\n\nThis will delete:\n• All tasks\n• All statistics\n• All daily reviews\n• All focus area edits\n\nThis action cannot be undone!')) {
+              
+              // ✅ 1. إزالة event listeners أولاً
+              window.removeEventListener('storage', () => {});
+              
+              // ✅ 2. مسح localStorage بالكامل
+              localStorage.clear();
+              
+              // ✅ 3. إعادة تعيين state مباشرة
+              setSectors(INITIAL_SECTORS);
+              setStats([]);
+              
+              // ✅ 4. إعادة تعيين المتغيرات المحلية
+              const newStats = calculateDailyStats(INITIAL_SECTORS);
+              const today = new Date().toISOString().split('T')[0];
+              
+              // ✅ 5. حفظ القيم الافتراضية مباشرة في localStorage
+              localStorage.setItem('daily-task-sectors', JSON.stringify(INITIAL_SECTORS));
+              localStorage.setItem('daily-stats', JSON.stringify([{
+                ...newStats,
+                date: today,
+                dailyRating: undefined,
+                notes: undefined
+              }]));
+              localStorage.setItem('theme', JSON.stringify('light'));
+              
+              // ✅ 6. إعادة تحميل الصفحة للتأكد
+              setTimeout(() => {
+                window.location.reload();
+              }, 100);
+            }
+          }}
+          className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-lg sm:rounded-xl bg-white dark:bg-slate-900 border border-red-300 dark:border-red-800 hover:shadow-md sm:hover:shadow-lg transition-all hover:scale-105 active:scale-95 hover:bg-red-50 dark:hover:bg-red-900/30 text-sm sm:text-base"
+          aria-label="Clear All Data"
+        >
+          🗑️
+        </button>
+      </Tooltip>
+      
+      <Tooltip text={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
+        <button 
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-lg sm:rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-md sm:hover:shadow-lg transition-all hover:scale-105 active:scale-95 text-sm sm:text-base"
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? '🌞' : '🌙'}
+        </button>
+      </Tooltip>
+    </div>
+  </div>
+</header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Overview */}
@@ -338,94 +342,99 @@ const handleSaveDailyReview = (rating: number, notes: string) => {
             <div className="text-sm text-slate-600 dark:text-slate-400">Productivity</div>
           </div>
         </div>
-
-        {/* What to Focus on Now */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">What to Focus on Now</h2>
-            <div className="text-sm text-slate-600 dark:text-slate-400">
-              Current Time: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+{/* What to Focus on Now */}
+<div className="mb-6 sm:mb-8">
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+    <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
+      What to Focus on Now
+    </h2>
+    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+      Current Time: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+    </div>
+  </div>
+  
+  {currentSector ? (() => {
+    const completedSectorTasks = currentSector.tasks.filter(t => t.completed).length;
+    const totalSectorTasks = currentSector.tasks.length;
+    const completionRate = totalSectorTasks > 0 ? Math.round((completedSectorTasks / totalSectorTasks) * 100) : 0;
+    
+    return (
+      <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 border transition-all ${
+        currentSector.color === 'amber' ? 'border-amber-500/30 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30' :
+        currentSector.color === 'blue' ? 'border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30' :
+        currentSector.color === 'emerald' ? 'border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30' :
+        currentSector.color === 'cyan' ? 'border-cyan-500/30 bg-gradient-to-r from-cyan-50 to-sky-50 dark:from-cyan-950/30 dark:to-sky-950/30' :
+        currentSector.color === 'violet' ? 'border-violet-500/30 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30' :
+        currentSector.color === 'indigo' ? 'border-indigo-500/30 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30' :
+        currentSector.color === 'purple' ? 'border-purple-500/30 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30' :
+        'border-slate-500/30 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30'
+      }`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className={`text-2xl sm:text-4xl p-2.5 sm:p-4 rounded-lg sm:rounded-2xl ${
+              currentSector.color === 'amber' ? 'bg-amber-100 dark:bg-amber-900/40' :
+              currentSector.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/40' :
+              currentSector.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/40' :
+              currentSector.color === 'cyan' ? 'bg-cyan-100 dark:bg-cyan-900/40' :
+              currentSector.color === 'violet' ? 'bg-violet-100 dark:bg-violet-900/40' :
+              currentSector.color === 'indigo' ? 'bg-indigo-100 dark:bg-indigo-900/40' :
+              currentSector.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/40' :
+              'bg-slate-100 dark:bg-slate-900/40'
+            } shrink-0`}>
+              {currentSector.icon}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                <h3 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
+                  {currentSector.label}
+                </h3>
+                <span className="px-2 py-1 sm:px-3 sm:py-1 rounded-full bg-white dark:bg-slate-800 text-xs sm:text-sm font-medium whitespace-nowrap">
+                  ⏰ {currentSector.idealTime}
+                </span>
+              </div>
+              <p className="text-sm sm:text-lg text-slate-700 dark:text-slate-300 line-clamp-1 sm:line-clamp-none">
+                {currentSector.description}
+              </p>
             </div>
           </div>
           
-          {currentSector ? (() => {
-            const completedSectorTasks = currentSector.tasks.filter(t => t.completed).length;
-            const totalSectorTasks = currentSector.tasks.length;
-            const completionRate = totalSectorTasks > 0 ? Math.round((completedSectorTasks / totalSectorTasks) * 100) : 0;
-            
-            return (
-              <div className={`rounded-3xl p-6 border transition-all ${
-                currentSector.color === 'amber' ? 'border-amber-500/30 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30' :
-                currentSector.color === 'blue' ? 'border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30' :
-                currentSector.color === 'emerald' ? 'border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30' :
-                currentSector.color === 'cyan' ? 'border-cyan-500/30 bg-gradient-to-r from-cyan-50 to-sky-50 dark:from-cyan-950/30 dark:to-sky-950/30' :
-                currentSector.color === 'violet' ? 'border-violet-500/30 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30' :
-                currentSector.color === 'indigo' ? 'border-indigo-500/30 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/30 dark:to-blue-950/30' :
-                currentSector.color === 'purple' ? 'border-purple-500/30 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30' :
-                'border-slate-500/30 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30'
-              }`}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className={`text-4xl p-4 rounded-2xl ${
-                      currentSector.color === 'amber' ? 'bg-amber-100 dark:bg-amber-900/40' :
-                      currentSector.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/40' :
-                      currentSector.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/40' :
-                      currentSector.color === 'cyan' ? 'bg-cyan-100 dark:bg-cyan-900/40' :
-                      currentSector.color === 'violet' ? 'bg-violet-100 dark:bg-violet-900/40' :
-                      currentSector.color === 'indigo' ? 'bg-indigo-100 dark:bg-indigo-900/40' :
-                      currentSector.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/40' :
-                      'bg-slate-100 dark:bg-slate-900/40'
-                    }`}>
-                      {currentSector.icon}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{currentSector.label}</h3>
-                        <span className="px-3 py-1 rounded-full bg-white dark:bg-slate-800 text-sm font-medium">
-                          ⏰ {currentSector.idealTime}
-                        </span>
-                      </div>
-                      <p className="text-lg text-slate-700 dark:text-slate-300">{currentSector.description}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                      {completionRate}%
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      {completedSectorTasks}/{totalSectorTasks} tasks
-                    </div>
-                  </div>
-                </div>
-                
-                {totalSectorTasks > 0 && (
-                  <div className="mt-6">
-                    <div className="h-3 bg-white/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full transition-all duration-1000 ${
-                          currentSector.color === 'amber' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
-                          currentSector.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                          currentSector.color === 'emerald' ? 'bg-gradient-to-r from-emerald-500 to-green-500' :
-                          currentSector.color === 'cyan' ? 'bg-gradient-to-r from-cyan-500 to-sky-500' :
-                          currentSector.color === 'violet' ? 'bg-gradient-to-r from-violet-500 to-purple-500' :
-                          currentSector.color === 'indigo' ? 'bg-gradient-to-r from-indigo-500 to-blue-500' :
-                          currentSector.color === 'purple' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
-                          'bg-gradient-to-r from-slate-500 to-gray-500'
-                        }`}
-                        style={{ width: `${completionRate}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })() : (
-            <div className="text-center py-8 text-slate-500 italic">
-              No focus area found for current time
+          <div className="text-center sm:text-right mt-2 sm:mt-0 shrink-0">
+            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-0.5">
+              {completionRate}%
             </div>
-          )}
+            <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">
+              {completedSectorTasks}/{totalSectorTasks} tasks
+            </div>
+          </div>
         </div>
+        
+        {totalSectorTasks > 0 && (
+          <div className="mt-4 sm:mt-6">
+            <div className="h-2 sm:h-3 bg-white/50 dark:bg-slate-800/50 rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-1000 ${
+                  currentSector.color === 'amber' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                  currentSector.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                  currentSector.color === 'emerald' ? 'bg-gradient-to-r from-emerald-500 to-green-500' :
+                  currentSector.color === 'cyan' ? 'bg-gradient-to-r from-cyan-500 to-sky-500' :
+                  currentSector.color === 'violet' ? 'bg-gradient-to-r from-violet-500 to-purple-500' :
+                  currentSector.color === 'indigo' ? 'bg-gradient-to-r from-indigo-500 to-blue-500' :
+                  currentSector.color === 'purple' ? 'bg-gradient-to-r from-purple-500 to-pink-500' :
+                  'bg-gradient-to-r from-slate-500 to-gray-500'
+                }`}
+                style={{ width: `${completionRate}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  })() : (
+    <div className="text-center py-4 sm:py-8 text-slate-500 italic text-sm sm:text-base">
+      No focus area found for current time
+    </div>
+  )}
+</div>
 
         {/* Focus Sectors Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
