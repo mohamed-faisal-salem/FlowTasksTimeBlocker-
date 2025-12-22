@@ -63,7 +63,7 @@ useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     
     // ✅ التحقق من الوقت (12:00 - 12:05 صباحاً)
-    if (hours === 9 && minutes >= 43 && minutes <= 47) {
+    if (hours === 9 && minutes >= 45 && minutes <= 49) {
       const lastReset = localStorage.getItem('lastMidnightReset');
       
       // ✅ إذا لم يتم الـ Reset اليوم أو كان آخر reset يوم أمس
