@@ -53,64 +53,64 @@ useEffect(() => {
 }, []);
 
   // Auto-reset at midnight (12 AM)
-// في App.tsx - استبدل useEffect الحالي بالكود التالي:
+// في App.tsx - استبدل useEffect الحالي بهذا الكود:
 
 useEffect(() => {
-  const checkForReset = () => {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
+  const checkForDailyReset = () => {
     const today = new Date().toISOString().split('T')[0];
+    const lastReset = localStorage.getItem('lastMidnightReset');
     
-    // ✅ التحقق من الوقت (12:00 - 12:05 صباحاً)
-    if (hours === 9 && minutes >= 45 && minutes <= 49) {
-      const lastReset = localStorage.getItem('lastMidnightReset');
+    console.log('📅 Date Check:', {
+      today,
+      lastReset,
+      needsReset: lastReset !== today
+    });
+    
+    // ✅ إذا كان اليوم مختلف عن آخر reset
+    if (!lastReset || lastReset !== today) {
+      console.log('🔄 New day detected! Resetting tasks...');
       
-      // ✅ إذا لم يتم الـ Reset اليوم أو كان آخر reset يوم أمس
-      if (!lastReset || lastReset !== today) {
-        console.log('🔄 Starting daily reset at midnight...');
-        
-        // 1. مسح المهام فقط
-        setSectors(prevSectors => 
-          prevSectors.map(sector => ({
-            ...sector,
-            tasks: [] // مسح المهام فقط
-          }))
-        );
-        
-        // 2. تحديث الإحصائيات لليوم الجديد
-        setStats(prevStats => {
-          // إنشاء إحصائيات جديدة لليوم
-          const newStats = calculateDailyStats(sectors.map(s => ({...s, tasks: []})));
-          const newDailyStat = {
-            ...newStats,
-            date: today,
-            dailyRating: undefined,
-            notes: undefined,
-            streak: 0
-          };
-          
-          // إزالة إحصائيات اليوم السابق إذا كانت موجودة
-          const filteredStats = prevStats.filter(stat => stat.date !== today);
-          
-          return [...filteredStats, newDailyStat];
-        });
-        
-        // 3. حفظ تاريخ الـ Reset
-        localStorage.setItem('lastMidnightReset', today);
-        console.log('✅ Daily reset completed at midnight');
-        
-        // 4. إعادة تحميل الصفحة للتأكد من التحديث
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      }
+      // 1. مسح المهام فقط
+      setSectors(prevSectors => 
+        prevSectors.map(sector => ({
+          ...sector,
+          tasks: [] // مسح المهام فقط
+        }))
+      );
+      
+      // 2. إنشاء إحصائيات جديدة لليوم
+      const newStats = calculateDailyStats([]); // إحصائيات فارغة
+      const newDailyStat = {
+        ...newStats,
+        id: Math.random().toString(36).substr(2, 9),
+        date: today,
+        dailyRating: undefined,
+        notes: undefined,
+        streak: 0
+      };
+      
+      // 3. تحديث الإحصائيات
+      setStats(prevStats => {
+        // إزالة إحصائيات اليوم إذا كانت موجودة (لتجنب التكرار)
+        const filteredStats = prevStats.filter(stat => stat.date !== today);
+        return [...filteredStats, newDailyStat];
+      });
+      
+      // 4. حفظ تاريخ الـ Reset
+      localStorage.setItem('lastMidnightReset', today);
+      console.log('✅ Daily reset completed for:', today);
+      
+      return true;
     }
+    
+    return false;
   };
   
-  // تحقق كل دقيقة
-  const interval = setInterval(checkForReset, 60000);
-  checkForReset(); // تحقق فور التحميل
+  // ✅ تحقق فور تحميل التطبيق
+  const didReset = checkForDailyReset();
+  
+  // ✅ أيضًا تحقق كل دقيقة (للحالات النادرة التي يبقى فيها التطبيق مفتوحاً لأيام)
+  const interval = setInterval(checkForDailyReset, 60000);
   
   return () => clearInterval(interval);
 }, [setSectors, setStats]);
