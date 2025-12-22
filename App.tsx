@@ -53,21 +53,24 @@ useEffect(() => {
 }, []);
 
   // Auto-reset at midnight (12 AM)
-// في App.tsx - في useEffect للـ Reset اليومي
+// في App.tsx - استبدل useEffect الحالي بالكود التالي:
+
 useEffect(() => {
   const checkForReset = () => {
     const now = new Date();
     const hours = now.getHours();
     const minutes = now.getMinutes();
+    const today = new Date().toISOString().split('T')[0];
     
-    // إذا كانت الساعة 12:00 - 12:05 صباحاً
-    if (hours === 0 && minutes >= 0 && minutes <= 5) {
+    // ✅ التحقق من الوقت (12:00 - 12:05 صباحاً)
+    if (hours === 9 && minutes >= 43 && minutes <= 47) {
       const lastReset = localStorage.getItem('lastMidnightReset');
-      const today = new Date().toISOString().split('T')[0];
       
-      // إذا لم يتم الـ Reset اليوم
-      if (lastReset !== today) {
-        // 1. مسح المهام فقط (وليس القطاعات المعدلة)
+      // ✅ إذا لم يتم الـ Reset اليوم أو كان آخر reset يوم أمس
+      if (!lastReset || lastReset !== today) {
+        console.log('🔄 Starting daily reset at midnight...');
+        
+        // 1. مسح المهام فقط
         setSectors(prevSectors => 
           prevSectors.map(sector => ({
             ...sector,
@@ -75,22 +78,32 @@ useEffect(() => {
           }))
         );
         
-        // 2. مسح dailyRating من إحصائيات اليوم
+        // 2. تحديث الإحصائيات لليوم الجديد
         setStats(prevStats => {
-          const todayStat = prevStats.find(s => s.date === today);
-          if (todayStat) {
-            return prevStats.map(stat => 
-              stat.date === today 
-                ? { ...stat, dailyRating: undefined, notes: undefined }
-                : stat
-            );
-          }
-          return prevStats;
+          // إنشاء إحصائيات جديدة لليوم
+          const newStats = calculateDailyStats(sectors.map(s => ({...s, tasks: []})));
+          const newDailyStat = {
+            ...newStats,
+            date: today,
+            dailyRating: undefined,
+            notes: undefined,
+            streak: 0
+          };
+          
+          // إزالة إحصائيات اليوم السابق إذا كانت موجودة
+          const filteredStats = prevStats.filter(stat => stat.date !== today);
+          
+          return [...filteredStats, newDailyStat];
         });
         
         // 3. حفظ تاريخ الـ Reset
         localStorage.setItem('lastMidnightReset', today);
-        console.log('Daily reset completed at midnight - tasks and daily review cleared');
+        console.log('✅ Daily reset completed at midnight');
+        
+        // 4. إعادة تحميل الصفحة للتأكد من التحديث
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
     }
   };
@@ -100,7 +113,7 @@ useEffect(() => {
   checkForReset(); // تحقق فور التحميل
   
   return () => clearInterval(interval);
-}, [setSectors, setStats]); // ✅ إضافة setStats إلى dependencies
+}, [setSectors, setStats]);
 
   // Update theme
   useEffect(() => {
