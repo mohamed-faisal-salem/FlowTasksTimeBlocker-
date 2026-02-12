@@ -2,78 +2,61 @@ import { FocusSector } from './types';
 
 export const INITIAL_SECTORS: FocusSector[] = [
   {
-    id: 'sleep-early',
-    label: 'Deep Sleep',
-    icon: '😴',
-    description: 'Rest & Recovery time',
-    color: 'indigo',
-    idealTime: '12AM-6AM',
-    tasks: []
-  },
-  {
-    id: 'morning-routine',
-    label: 'Morning Routine',
-    icon: '🌅',
-    description: 'Wake up, hygiene, planning',
-    color: 'amber',
-    idealTime: '6AM-8AM',
-    tasks: []
-  },
-  {
-    id: 'deep-work-1',
-    label: 'Deep Work 1',
-    icon: '🎯',
-    description: 'High-concentration tasks',
+    id: 'college-study',
+    label: 'College Study',
+    icon: '📘',
+    description: 'Study faculty subjects',
     color: 'blue',
-    idealTime: '8AM-11AM',
+    idealTime: '7AM-1PM',
     tasks: []
   },
   {
-    id: 'creative-flow',
-    label: 'Creative Flow',
-    icon: '✨',
-    description: 'Brainstorming, design, innovation',
+    id: 'ml-dl',
+    label: 'ML & DL',
+    icon: '🤖',
+    description: 'Machine Learning & Deep Learning',
     color: 'purple',
-    idealTime: '11AM-2PM',
+    idealTime: '1:30PM-3:30PM',
     tasks: []
   },
   {
-    id: 'lunch-break',
-    label: 'Lunch & Rest',
-    icon: '🍽️',
-    description: 'Meal, relaxation, recharge',
+    id: 'english',
+    label: 'English Study',
+    icon: '🇬🇧',
+    description: 'Improve English skills',
     color: 'green',
-    idealTime: '2PM-3PM',
+    idealTime: '4PM-5:30PM',
     tasks: []
   },
   {
-    id: 'deep-work-2',
-    label: 'Deep Work 2',
-    icon: '📊',
-    description: 'Execution, meetings, follow-ups',
+    id: 'problem-solving',
+    label: 'Problem Solving',
+    icon: '🧠',
+    description: 'Algorithms & coding practice',
+    color: 'amber',
+    idealTime: '6PM-7:30PM',
+    tasks: []
+  },
+  {
+    id: 'daily-wrap',
+    label: 'Finish Remaining Tasks',
+    icon: '✅',
+    description: 'Complete pending tasks',
     color: 'cyan',
-    idealTime: '3PM-6PM',
+    idealTime: '8PM-10:30PM',
     tasks: []
   },
   {
-    id: 'evening-winddown',
-    label: 'Evening Wind Down',
-    icon: '🌙',
-    description: 'Exercise, hobbies, family time',
-    color: 'violet',
-    idealTime: '6PM-9PM',
-    tasks: []
-  },
-  {
-    id: 'night-routine',
-    label: 'Night Routine',
-    icon: '📚',
-    description: 'Learning, reflection, preparation',
-    color: 'pink',
-    idealTime: '9PM-12AM',
+    id: 'sleep',
+    label: 'Sleep',
+    icon: '😴',
+    description: 'Rest & recovery',
+    color: 'indigo',
+    idealTime: '11:30PM-6AM',
     tasks: []
   }
 ];
+
 
 export const PRIORITY_COLORS = {
   urgent: 'bg-red-500 text-white',
